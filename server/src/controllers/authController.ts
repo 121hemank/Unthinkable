@@ -7,7 +7,6 @@ const registerSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
     password: z.string().min(6),
-    role: z.enum(["patient", "doctor"]).default("patient"),
 });
 const loginSchema = z.object({
     email: z.string().email(),
@@ -15,13 +14,13 @@ const loginSchema = z.object({
 });
 export async function register(req: Request, res: Response, next: NextFunction) {
     try {
-        const { name, email, password, role } = registerSchema.parse(req.body);
+        const { name, email, password } = registerSchema.parse(req.body);
         const existing = await User.findOne({ email });
         if (existing) {
             return res.status(409).json({ error: "An account with this email already exists" });
         }
         const passwordHash = await bcrypt.hash(password, 10);
-        const user = await User.create({ name, email, passwordHash, role });
+        const user = await User.create({ name, email, passwordHash, role: "patient" });
         const token = signToken(user._id, user.role);
         return res.status(201).json({
             token,

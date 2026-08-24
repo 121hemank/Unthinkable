@@ -117,7 +117,7 @@ export async function submitSymptoms(req: Request, res: Response, next: NextFunc
     try {
         const { appointmentId } = req.params;
         const { symptoms } = symptomSchema.parse(req.body);
-        const appointment = await Appointment.findOne({ _id: appointmentId, status: "HELD" });
+        const appointment = await Appointment.findOne({ _id: appointmentId, patientId: req.user!.userId, status: "HELD" });
         if (!appointment) {
             return res.status(404).json({ error: "No held appointment found (it may have expired)" });
         }
@@ -140,7 +140,7 @@ export async function submitSymptoms(req: Request, res: Response, next: NextFunc
 export async function confirmAppointment(req: Request, res: Response, next: NextFunction) {
     try {
         const { appointmentId } = req.params;
-        const appointment = await Appointment.findOneAndUpdate({ _id: appointmentId, status: "HELD" }, { status: "CONFIRMED", holdExpiresAt: null }, { new: true });
+        const appointment = await Appointment.findOneAndUpdate({ _id: appointmentId, patientId: req.user!.userId, status: "HELD" }, { status: "CONFIRMED", holdExpiresAt: null }, { new: true });
         if (!appointment) {
             return res.status(410).json({ error: "This hold has expired. Please pick a slot again." });
         }
@@ -267,7 +267,12 @@ export async function rescheduleAppointment(req: Request, res: Response, next: N
 export async function cancelAppointment(req: Request, res: Response, next: NextFunction) {
     try {
         const { appointmentId } = req.params;
-        const appointment = await Appointment.findOneAndUpdate({ _id: appointmentId, status: { $in: ["HELD", "CONFIRMED"] } }, { status: "CANCELLED", holdExpiresAt: null }, { new: true });
+        const { userId, role } = req.user!;
+        const filter: Record<string, unknown> = { _id: appointmentId, status: { $in: ["HELD", "CONFIRMED"] } };
+        if (role !== "admin") {
+            filter.$or = [{ patientId: userId }, { doctorId: userId }];
+        }
+        const appointment = await Appointment.findOneAndUpdate(filter, { status: "CANCELLED", holdExpiresAt: null }, { new: true });
         if (!appointment) {
             return res.status(404).json({ error: "Appointment not found or already cancelled" });
         }
@@ -318,6 +323,9 @@ export async function getAvailableSlots(req: Request, res: Response, next: NextF
         };
         if (!doctorId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
             return res.status(400).json({ error: "doctorId and date (YYYY-MM-DD) are required" });
+        }
+        if (!/^[a-f\d]{24}$/i.test(doctorId)) {
+            return res.status(400).json({ error: "Invalid doctorId" });
         }
         await Appointment.deleteMany({
             doctorId,
