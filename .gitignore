@@ -5,3 +5,6 @@ build/
 .env.local
 *.log
 .DS_Store
+
+client/vite.config.js
+client/vite.config.d.ts
