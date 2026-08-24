@@ -1,22 +1,8 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import {
-  createDoctorProfile,
-  markDoctorLeave,
-  listDoctors,
-  getPlatformStats,
-  listAllAppointments,
-  adminCancelAppointment,
-  setDoctorActive,
-  listUpcomingLeaves,
-  deleteLeave,
-  listUsers,
-  setUserActive,
-} from "../controllers/adminController";
-
+import { createDoctorProfile, markDoctorLeave, listDoctors, getPlatformStats, listAllAppointments, adminCancelAppointment, setDoctorActive, listUpcomingLeaves, deleteLeave, listUsers, setUserActive, } from "../controllers/adminController";
 const router = Router();
-
 router.use(requireAuth, requireRole("admin"));
 router.get("/doctors", listDoctors);
 router.post("/doctors", createDoctorProfile);
@@ -29,5 +15,4 @@ router.get("/appointments", listAllAppointments);
 router.post("/appointments/:id/cancel", adminCancelAppointment);
 router.get("/users", listUsers);
 router.patch("/users/:userId/active", setUserActive);
-
 export default router;

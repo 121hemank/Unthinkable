@@ -1,19 +1,8 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import {
-  holdSlot,
-  submitSymptoms,
-  confirmAppointment,
-  cancelAppointment,
-  rescheduleAppointment,
-  getAvailableSlots,
-  listMyAppointments,
-  getAppointmentSummary,
-} from "../controllers/appointmentController";
-
+import { holdSlot, submitSymptoms, confirmAppointment, cancelAppointment, rescheduleAppointment, getAvailableSlots, listMyAppointments, getAppointmentSummary, } from "../controllers/appointmentController";
 const router = Router();
-
 router.get("/available-slots", requireAuth, getAvailableSlots);
 router.get("/mine", requireAuth, requireRole("patient"), listMyAppointments);
 router.get("/:appointmentId/summary", requireAuth, requireRole("patient"), getAppointmentSummary);
@@ -21,6 +10,5 @@ router.post("/hold", requireAuth, requireRole("patient"), holdSlot);
 router.post("/:appointmentId/symptoms", requireAuth, requireRole("patient"), submitSymptoms);
 router.post("/:appointmentId/confirm", requireAuth, requireRole("patient"), confirmAppointment);
 router.post("/:appointmentId/reschedule", requireAuth, requireRole("patient"), rescheduleAppointment);
-router.post("/:appointmentId/cancel", requireAuth, cancelAppointment); // patient or doctor
-
+router.post("/:appointmentId/cancel", requireAuth, cancelAppointment);
 export default router;
