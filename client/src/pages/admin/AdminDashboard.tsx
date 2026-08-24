@@ -26,8 +26,8 @@ interface LeaveEntry {
     date: string;
     reason?: string;
 }
-function nameOf(ref: string | UserRef): string {
-    return typeof ref === "string" ? "Unknown" : ref.name;
+function nameOf(ref: string | UserRef | null | undefined): string {
+    return ref && typeof ref === "object" ? ref?.name || "Unknown" : "Unknown";
 }
 function leaveDateLabel(date: string): string {
     const d = new Date(`${date}T00:00:00`);
