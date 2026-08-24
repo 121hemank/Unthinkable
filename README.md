@@ -4,9 +4,19 @@ Full-stack appointment platform with patient / doctor / admin portals, AI
 pre-visit and post-visit summaries, resilient email notifications, Google
 Calendar sync, and race-proof slot booking.
 
-- **Live app**: frontend on Vercel, API on Render (see [Deployment](#deployment))
+- **Live app**: https://unthinkable-silk.vercel.app
+  - API: https://clinicapi-z39u.onrender.com/api/health
 - **System design write-up** (double-booking prevention, holds, leave
   conflicts, notification & LLM failure handling): [`docs/system-design.md`](./docs/system-design.md)
+
+## Demo credentials (live deployment)
+
+| Role | How to access |
+|---|---|
+| **Admin** | `admin@clinic.com` / `Admin@123` — full admin console |
+| Doctor / Patient | Click **Register** on the live app and create your own account (patients instantly; doctors are provisioned by the admin console) |
+
+> First page load after inactivity may take ~50 s — the free Render instance wakes up on demand.
 
 ## Stack
 
