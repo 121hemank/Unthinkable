@@ -141,7 +141,11 @@ export async function submitPostVisit(req: Request, res: Response, next: NextFun
                 error: `This visit hasn't happened yet — notes open at ${appointment.slotStart.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })} (IST)`,
             });
         }
-        await PostVisitNote.create({ appointmentId, clinicalNotes, prescription });
+        await PostVisitNote.findOneAndUpdate(
+            { appointmentId },
+            { $set: { clinicalNotes, prescription } },
+            { upsert: true }
+        );
         appointment.status = "COMPLETED";
         await appointment.save();
         const medicationSchedule = prescription.map((item) => ({
@@ -149,13 +153,19 @@ export async function submitPostVisit(req: Request, res: Response, next: NextFun
             timeOfDay: frequencyToTimes(item.frequency),
         }));
         const llmResult = await generatePostVisitSummary(clinicalNotes, prescription);
-        await PostVisitSummary.create({
-            appointmentId,
-            patientFriendlyText: llmResult.status === "OK" ? llmResult.patientFriendlyText : clinicalNotes,
-            medicationSchedule,
-            followUpSteps: llmResult.status === "OK" ? llmResult.followUpSteps : null,
-            llmStatus: llmResult.status,
-        });
+        await PostVisitSummary.findOneAndUpdate(
+            { appointmentId },
+            {
+                $set: {
+                    patientFriendlyText: llmResult.status === "OK" ? llmResult.patientFriendlyText : clinicalNotes,
+                    medicationSchedule,
+                    followUpSteps: llmResult.status === "OK" ? llmResult.followUpSteps : null,
+                    llmStatus: llmResult.status,
+                },
+            },
+            { upsert: true }
+        );
+        await MedicationReminder.deleteMany({ appointmentId });
         for (let i = 0; i < prescription.length; i++) {
             const item = prescription[i];
             for (const timeOfDay of medicationSchedule[i].timeOfDay) {

@@ -121,16 +121,25 @@ export async function submitSymptoms(req: Request, res: Response, next: NextFunc
         if (!appointment) {
             return res.status(404).json({ error: "No held appointment found (it may have expired)" });
         }
-        await SymptomForm.create({ appointmentId, rawSymptoms: symptoms });
+        await SymptomForm.findOneAndUpdate(
+            { appointmentId },
+            { $set: { rawSymptoms: symptoms } },
+            { upsert: true }
+        );
         const llmResult = await generatePreVisitSummary(symptoms);
-        await PreVisitSummary.create({
-            appointmentId,
-            urgencyLevel: llmResult.status === "OK" ? llmResult.urgencyLevel : null,
-            chiefComplaint: llmResult.status === "OK" ? llmResult.chiefComplaint : null,
-            suggestedQuestions: llmResult.status === "OK" ? llmResult.suggestedQuestions : [],
-            llmStatus: llmResult.status,
-            rawLlmResponse: llmResult.rawResponse,
-        });
+        await PreVisitSummary.findOneAndUpdate(
+            { appointmentId },
+            {
+                $set: {
+                    urgencyLevel: llmResult.status === "OK" ? llmResult.urgencyLevel : null,
+                    chiefComplaint: llmResult.status === "OK" ? llmResult.chiefComplaint : null,
+                    suggestedQuestions: llmResult.status === "OK" ? llmResult.suggestedQuestions : [],
+                    llmStatus: llmResult.status,
+                    rawLlmResponse: llmResult.rawResponse,
+                },
+            },
+            { upsert: true }
+        );
         return res.json({ ok: true, llmStatus: llmResult.status });
     }
     catch (err) {

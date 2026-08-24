@@ -358,7 +358,7 @@ export default function PatientDashboard() {
             return;
         setBusy(true);
         try {
-            await api.post(`/appointments/${held._id}/symptoms`, { symptoms });
+            await api.post(`/appointments/${held._id}/symptoms`, { symptoms }, { timeout: 70000 });
             setSymptomsSaved(true);
             setMessage({ text: "Symptoms saved.", ok: true });
         }

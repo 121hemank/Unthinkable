@@ -82,7 +82,7 @@ function AppointmentRow({ appt, variant, onSubmitted, }: {
             await api.post(`/doctors/appointments/${appt._id}/post-visit`, {
                 clinicalNotes: notes,
                 prescription: rx.filter((r) => r.medicationName.trim() !== ""),
-            });
+            }, { timeout: 70000 });
             onSubmitted();
         }
         catch (err: any) {
