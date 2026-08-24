@@ -7,7 +7,7 @@ import { fmtSlot, fmtTime, whenLabel } from "../../lib/format";
 import { CalendarLinkCard } from "../../components/CalendarLinkCard";
 import { NotificationBell } from "../../components/NotificationBell";
 function nameOf(ref: string | UserRef): string {
-    return typeof ref === "string" ? "Unknown" : ref.name;
+    return ref && typeof ref === "object" ? ref?.name || "Unknown" : "Unknown";
 }
 interface VisitRecord {
     symptomForm: {
@@ -429,7 +429,7 @@ export default function PatientDashboard() {
         setMessage(null);
         window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
-    const doctorIdOf = (a: Appointment) => (typeof a.doctorId === "string" ? a.doctorId : a.doctorId._id);
+    const doctorIdOf = (a: Appointment) => (typeof a.doctorId === "string" ? a.doctorId : a.doctorId?._id ?? "");
     useEffect(() => {
         if (!rescheduling)
             return;

@@ -7,7 +7,7 @@ import { CalendarLinkCard } from "../../components/CalendarLinkCard";
 import { DoctorProfileCard } from "../../components/DoctorProfileCard";
 import { fmtSlot, fmtTime, initials, whenLabel } from "../../lib/format";
 function nameOf(ref: string | UserRef): string {
-    return typeof ref === "string" ? "Unknown" : ref.name;
+    return ref && typeof ref === "object" ? ref?.name || "Unknown" : "Unknown";
 }
 const emptyRx: PrescriptionItem = {
     medicationName: "",
