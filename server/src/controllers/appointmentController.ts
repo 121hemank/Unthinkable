@@ -149,31 +149,33 @@ export async function confirmAppointment(req: Request, res: Response, next: Next
             User.findById(appointment.doctorId),
         ]);
         if (patient && doctor) {
-            const tpl = emailTemplates.bookingConfirmation(patient.name, doctor.name, appointment.slotStart);
-            await logAndSendEmail({
-                type: "BOOKING_CONFIRM",
-                recipientId: patient._id,
-                to: patient.email,
-                subject: tpl.subject,
-                html: tpl.html,
-            });
-            const doctorTpl = emailTemplates.bookingConfirmationForDoctor(doctor.name, patient.name, appointment.slotStart);
-            await logAndSendEmail({
-                type: "BOOKING_CONFIRM",
-                recipientId: doctor._id,
-                to: doctor.email,
-                subject: doctorTpl.subject,
-                html: doctorTpl.html,
-            });
-            await syncAppointmentCalendars({
-                appointmentId: appointment._id,
-                patient,
-                doctor,
-                doctorName: doctor.name,
-                patientName: patient.name,
-                start: appointment.slotStart,
-                end: appointment.slotEnd,
-            });
+            void (async () => {
+                const tpl = emailTemplates.bookingConfirmation(patient.name, doctor.name, appointment.slotStart);
+                await logAndSendEmail({
+                    type: "BOOKING_CONFIRM",
+                    recipientId: patient._id,
+                    to: patient.email,
+                    subject: tpl.subject,
+                    html: tpl.html,
+                });
+                const doctorTpl = emailTemplates.bookingConfirmationForDoctor(doctor.name, patient.name, appointment.slotStart);
+                await logAndSendEmail({
+                    type: "BOOKING_CONFIRM",
+                    recipientId: doctor._id,
+                    to: doctor.email,
+                    subject: doctorTpl.subject,
+                    html: doctorTpl.html,
+                });
+                await syncAppointmentCalendars({
+                    appointmentId: appointment._id,
+                    patient,
+                    doctor,
+                    doctorName: doctor.name,
+                    patientName: patient.name,
+                    start: appointment.slotStart,
+                    end: appointment.slotEnd,
+                });
+            })().catch(() => { });
         }
         return res.json({ appointment });
     }
@@ -231,29 +233,32 @@ export async function rescheduleAppointment(req: Request, res: Response, next: N
             User.findById(updated!.doctorId),
         ]);
         if (patient && doctor) {
-            for (const [recipient, otherName] of [
-                [patient, `Dr. ${doctor.name}`],
-                [doctor, patient.name],
-            ] as const) {
-                const tpl = emailTemplates.rescheduled(recipient.name, otherName, oldStart!, newStart);
-                await logAndSendEmail({
-                    type: "RESCHEDULED",
-                    recipientId: recipient._id,
-                    to: recipient.email,
-                    subject: tpl.subject,
-                    html: tpl.html,
+            const old = oldStart as unknown as Date;
+            void (async () => {
+                for (const [recipient, otherName] of [
+                    [patient, `Dr. ${doctor.name}`],
+                    [doctor, patient.name],
+                ] as const) {
+                    const tpl = emailTemplates.rescheduled(recipient.name, otherName, old, newStart);
+                    await logAndSendEmail({
+                        type: "RESCHEDULED",
+                        recipientId: recipient._id,
+                        to: recipient.email,
+                        subject: tpl.subject,
+                        html: tpl.html,
+                    });
+                }
+                await deleteAppointmentCalendars(updated!._id);
+                await syncAppointmentCalendars({
+                    appointmentId: updated!._id,
+                    patient,
+                    doctor,
+                    doctorName: doctor.name,
+                    patientName: patient.name,
+                    start: updated!.slotStart,
+                    end: updated!.slotEnd,
                 });
-            }
-            await deleteAppointmentCalendars(updated!._id);
-            await syncAppointmentCalendars({
-                appointmentId: updated!._id,
-                patient,
-                doctor,
-                doctorName: doctor.name,
-                patientName: patient.name,
-                start: updated!.slotStart,
-                end: updated!.slotEnd,
-            });
+            })().catch(() => { });
         }
         return res.json({ appointment: updated });
     }
@@ -281,23 +286,25 @@ export async function cancelAppointment(req: Request, res: Response, next: NextF
             User.findById(appointment.doctorId),
         ]);
         if (patient && doctor) {
-            const patientTpl = emailTemplates.cancellation(patient.name, doctor.name, appointment.slotStart, "Cancelled");
-            await logAndSendEmail({
-                type: "CANCELLATION",
-                recipientId: patient._id,
-                to: patient.email,
-                subject: patientTpl.subject,
-                html: patientTpl.html,
-            });
-            const doctorTpl = emailTemplates.cancellationForDoctor(doctor.name, patient.name, appointment.slotStart, "Cancelled by the other party");
-            await logAndSendEmail({
-                type: "CANCELLATION",
-                recipientId: doctor._id,
-                to: doctor.email,
-                subject: doctorTpl.subject,
-                html: doctorTpl.html,
-            });
-            await deleteAppointmentCalendars(appointment._id);
+            void (async () => {
+                const patientTpl = emailTemplates.cancellation(patient.name, doctor.name, appointment.slotStart, "Cancelled");
+                await logAndSendEmail({
+                    type: "CANCELLATION",
+                    recipientId: patient._id,
+                    to: patient.email,
+                    subject: patientTpl.subject,
+                    html: patientTpl.html,
+                });
+                const doctorTpl = emailTemplates.cancellationForDoctor(doctor.name, patient.name, appointment.slotStart, "Cancelled by the other party");
+                await logAndSendEmail({
+                    type: "CANCELLATION",
+                    recipientId: doctor._id,
+                    to: doctor.email,
+                    subject: doctorTpl.subject,
+                    html: doctorTpl.html,
+                });
+                await deleteAppointmentCalendars(appointment._id);
+            })().catch(() => { });
         }
         return res.json({ appointment });
     }
