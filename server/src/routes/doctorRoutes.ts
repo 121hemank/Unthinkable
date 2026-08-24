@@ -1,0 +1,24 @@
+import { Router } from "express";
+import { requireAuth } from "../middleware/auth";
+import { requireRole } from "../middleware/rbac";
+import {
+  searchDoctors,
+  getPreVisitBrief,
+  submitPostVisit,
+  listDoctorAppointments,
+  getMyProfile,
+  upsertMyProfile,
+  getPatientHistory,
+} from "../controllers/doctorController";
+
+const router = Router();
+
+router.get("/", requireAuth, searchDoctors); // patients search doctors by specialization
+router.get("/me/profile", requireAuth, requireRole("doctor"), getMyProfile);
+router.put("/me/profile", requireAuth, requireRole("doctor"), upsertMyProfile);
+router.get("/appointments/mine", requireAuth, requireRole("doctor"), listDoctorAppointments);
+router.get("/appointments/:appointmentId/pre-visit", requireAuth, requireRole("doctor"), getPreVisitBrief);
+router.post("/appointments/:appointmentId/post-visit", requireAuth, requireRole("doctor"), submitPostVisit);
+router.get("/patients/:patientId/history", requireAuth, requireRole("doctor"), getPatientHistory);
+
+export default router;
