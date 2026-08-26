@@ -111,7 +111,15 @@ export default function AdminDashboard() {
     const [selectedUserId, setSelectedUserId] = useState("");
     const [specialization, setSpecialization] = useState("");
     const [slotDuration, setSlotDuration] = useState(30);
-    const [hoursText, setHoursText] = useState("mon: 09:00-13:00\ntue: 09:00-13:00\nwed: \nthu: 09:00-13:00\nfri: 09:00-13:00\nsat: \nsun: ");
+    const [hoursRows, setHoursRows] = useState<Record<WeekdayKey, { start: string; end: string; on: boolean }[]>>(() => ({
+        mon: [{ start: "09:00", end: "17:00", on: true }],
+        tue: [{ start: "09:00", end: "17:00", on: true }],
+        wed: [{ start: "09:00", end: "17:00", on: true }],
+        thu: [{ start: "09:00", end: "17:00", on: true }],
+        fri: [{ start: "09:00", end: "17:00", on: true }],
+        sat: [{ start: "10:00", end: "14:00", on: false }],
+        sun: [{ start: "10:00", end: "14:00", on: false }],
+    }));
     const [leaveDoctorId, setLeaveDoctorId] = useState("");
     const [leaveDate, setLeaveDate] = useState("");
     const [leaveReason, setLeaveReason] = useState("");
@@ -161,12 +169,21 @@ export default function AdminDashboard() {
                 start: string;
                 end: string;
             }[]> = {};
-            for (const line of hoursText.split("\n")) {
-                const [dayPart, rangePart] = line.split(":").map((s) => s.trim().toLowerCase());
-                if (!WEEKDAYS.includes(dayPart as WeekdayKey))
+            for (const day of WEEKDAYS) {
+                const windows = hoursRows[day].filter((w) => w.on);
+                if (windows.length === 0)
                     continue;
-                const range = line.slice(line.indexOf(":") + 1).trim();
-                workingHours[dayPart as WeekdayKey] = parseHours(range);
+                for (const w of windows) {
+                    if (!w.start || !w.end || w.start >= w.end) {
+                        setMessage({ text: `${DAY_LABELS[day]}: each window must end after it starts.`, ok: false });
+                        return;
+                    }
+                }
+                workingHours[day] = windows.map((w) => ({ start: w.start, end: w.end }));
+            }
+            if (Object.keys(workingHours).length === 0) {
+                setMessage({ text: "Enable at least one consulting day.", ok: false });
+                return;
             }
             await api.post("/admin/doctors", {
                 userId: selectedUserId,
@@ -174,7 +191,7 @@ export default function AdminDashboard() {
                 slotDurationMinutes: slotDuration,
                 workingHours,
             });
-            setMessage({ text: "Doctor profile created.", ok: true });
+            setMessage({ text: "Doctor profile created — they're now bookable by patients.", ok: true });
             load();
         }
         catch (err: any) {
@@ -183,6 +200,12 @@ export default function AdminDashboard() {
         finally {
             setBusy(false);
         }
+    }
+    function updateHoursRow(day: WeekdayKey, i: number, patch: Partial<{ start: string; end: string; on: boolean }>) {
+        setHoursRows((prev) => ({
+            ...prev,
+            [day]: prev[day].map((w, idx) => (idx === i ? { ...w, ...patch } : w)),
+        }));
     }
     async function markLeave() {
         setBusy(true);
@@ -398,10 +421,22 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div>
-              <label className="block text-sm text-slate-600 mb-1">
-                Working hours — one weekday per line, blank = day off
+              <label className="block text-sm text-slate-600 mb-2">
+                Weekly consulting hours — tick the days, set times (clinic's local time)
               </label>
-              <textarea rows={7} className={`${inputClass} font-mono text-sm`} value={hoursText} onChange={(e) => setHoursText(e.target.value)}/>
+              <div className="space-y-2">
+                {WEEKDAYS.map((day) => (<div key={day} className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 w-28 cursor-pointer">
+                      <input type="checkbox" checked={hoursRows[day][0].on} onChange={(e) => updateHoursRow(day, 0, { on: e.target.checked })}/>
+                      <span className="text-sm text-slate-700">{DAY_LABELS[day]}</span>
+                    </label>
+                    {hoursRows[day][0].on ? (<>
+                        <input type="time" className={`${inputClass} !w-32`} value={hoursRows[day][0].start} onChange={(e) => updateHoursRow(day, 0, { start: e.target.value })}/>
+                        <span className="text-slate-400 text-sm">to</span>
+                        <input type="time" className={`${inputClass} !w-32`} value={hoursRows[day][0].end} onChange={(e) => updateHoursRow(day, 0, { end: e.target.value })}/>
+                      </>) : (<span className="text-sm text-slate-400">Day off</span>)}
+                  </div>))}
+              </div>
             </div>
             <button onClick={createProfile} disabled={busy || !selectedUserId || specialization.trim().length < 2} className={btnClass}>
               Create profile

@@ -36,10 +36,17 @@ export async function listDoctors(_req: Request, res: Response, next: NextFuncti
 export async function createDoctorProfile(req: Request, res: Response, next: NextFunction) {
     try {
         const data = doctorProfileSchema.parse(req.body);
+        const existing = await DoctorProfile.findOne({ userId: data.userId }).select("_id");
+        if (existing) {
+            return res.status(409).json({ error: "This doctor already has a profile. They can edit their hours from their own dashboard." });
+        }
         const profile = await DoctorProfile.create(data);
         return res.status(201).json({ profile });
     }
-    catch (err) {
+    catch (err: any) {
+        if (err?.code === 11000) {
+            return res.status(409).json({ error: "This doctor already has a profile. They can edit their hours from their own dashboard." });
+        }
         next(err);
     }
 }
