@@ -30,23 +30,23 @@ export function DashboardShell({ title, subtitle, children, headerRight, }: {
             setParams(params, { replace: true });
         }
     }, []);
-    return (<div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
+    return (<div className="min-h-screen">
+      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200/70">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">C</span>
+            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-cyan-500 text-white flex items-center justify-center font-extrabold text-sm shrink-0 shadow-md shadow-teal-600/25">C</span>
             <div className="min-w-0">
-              <h1 className="text-base sm:text-xl font-semibold text-slate-900 truncate">{title}</h1>
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 truncate">{title}</h1>
               {subtitle && <p className="text-xs sm:text-sm text-slate-500 truncate">{subtitle}</p>}
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {headerRight}
-            <span className="hidden sm:inline-block rounded-full bg-primary-light text-primary-dark px-2.5 py-0.5 text-xs font-semibold capitalize">
+            <span className="hidden sm:inline-block rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide capitalize">
               {user?.role}
             </span>
             <span className="hidden md:inline text-sm text-slate-500 truncate max-w-[180px]">{user?.email}</span>
-            <button onClick={logout} className="text-sm font-medium text-slate-600 hover:text-white hover:bg-slate-700 border border-slate-300 rounded-lg px-3 py-1.5 transition-colors">
+            <button onClick={logout} className="text-sm font-semibold text-slate-600 hover:text-white hover:bg-slate-700 border border-slate-300 rounded-xl px-3 py-1.5 transition-colors">
               Sign out
             </button>
           </div>
@@ -54,7 +54,7 @@ export function DashboardShell({ title, subtitle, children, headerRight, }: {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {banner && (<div className={`rounded-lg px-4 py-3 text-sm ${banner.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-urgency-high"}`}>
+        {banner && (<div className={`rounded-xl px-4 py-3 text-sm font-medium ring-1 ${banner.ok ? "bg-emerald-50 text-emerald-800 ring-emerald-100" : "bg-red-50 text-urgency-high ring-red-100"}`}>
             {banner.text}
           </div>)}
         {children}
