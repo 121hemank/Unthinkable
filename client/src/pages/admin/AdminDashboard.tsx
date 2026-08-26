@@ -281,6 +281,26 @@ export default function AdminDashboard() {
             setBusy(false);
         }
     }
+    async function changeRole(u: AdminUserT, role: "patient" | "doctor") {
+        setBusy(true);
+        setMessage(null);
+        try {
+            await api.patch(`/admin/users/${u._id}/role`, { role });
+            setMessage({
+                text: role === "doctor"
+                    ? `${u.name} is now a doctor — create their profile in the Doctor roster section.`
+                    : `${u.name} is now a patient.`,
+                ok: true,
+            });
+            load();
+        }
+        catch (err: any) {
+            setMessage({ text: err?.response?.data?.error || "Could not change role", ok: false });
+        }
+        finally {
+            setBusy(false);
+        }
+    }
     function startLeaveFor(d: DoctorListItem) {
         setLeaveDoctorId(d._id);
         setLeaveDate("");
@@ -350,7 +370,10 @@ export default function AdminDashboard() {
       
       <Card title="Create doctor profile">
         {unprofiled.length === 0 ? (<p className="text-sm text-slate-500">
-            Every registered doctor already has a profile. New doctors appear here after they register.
+            Every doctor account has a profile here. To onboard a new clinician:
+          find their account under <strong>User accounts</strong>, click
+          <strong> Make doctor</strong>, and their row will appear above for
+          profile setup.
           </p>) : (<div className="space-y-4 max-w-xl">
             <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-800">
               {unprofiled.length} doctor{unprofiled.length > 1 ? "s" : ""} waiting for a profile before
@@ -448,10 +471,17 @@ export default function AdminDashboard() {
                 {u.role !== "admin" && (<button onClick={() => toggleUser(u)} disabled={busy} className={`text-sm font-medium hover:underline whitespace-nowrap ${u.isActive ? "text-urgency-high" : "text-emerald-600"}`}>
                     {u.isActive ? "Disable" : "Enable"}
                   </button>)}
+                {u.role === "patient" && (<button onClick={() => changeRole(u, "doctor")} disabled={busy} className="text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">
+                    Make doctor
+                  </button>)}
+                {u.role === "doctor" && (<button onClick={() => changeRole(u, "patient")} disabled={busy} className="text-sm font-medium text-slate-500 hover:underline whitespace-nowrap">
+                    Make patient
+                  </button>)}
               </li>))}
           </ul>)}
         <p className="text-xs text-slate-400 mt-3">
           Disabling an account blocks login and revokes existing sessions immediately. Admin accounts cannot be disabled.
+          Use <strong>Make doctor</strong> to grant clinician access — then set up their profile and weekly hours in the Doctor roster above.
         </p>
       </Card>
 

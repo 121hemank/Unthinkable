@@ -244,3 +244,23 @@ export async function setUserActive(req: Request, res: Response, next: NextFunct
         next(err);
     }
 }
+export async function setUserRole(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { role } = z.object({ role: z.enum(["patient", "doctor"]) }).parse(req.body);
+        const target = await User.findById(req.params.userId).select("role");
+        if (!target)
+            return res.status(404).json({ error: "User not found" });
+        if (target.role === "admin") {
+            return res.status(409).json({ error: "Admin accounts cannot be reassigned" });
+        }
+        if (target.role === role) {
+            return res.status(409).json({ error: `This account is already a ${role}` });
+        }
+        target.role = role;
+        await target.save();
+        return res.json({ user: { _id: target._id, role: target.role } });
+    }
+    catch (err) {
+        next(err);
+    }
+}
