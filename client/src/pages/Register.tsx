@@ -19,7 +19,14 @@ export default function Register() {
             setError(err?.response?.data?.error || "Registration failed");
         }
     }
-    return (<div className="min-h-screen flex items-center justify-center">
+    return (<div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <div className="flex items-center gap-3 mb-6">
+        <span className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg">C</span>
+        <div>
+          <p className="text-lg font-semibold text-slate-900">Clinic Appointment Manager</p>
+          <p className="text-sm text-slate-500">Create your patient account</p>
+        </div>
+      </div>
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <h1 className="text-xl font-semibold text-slate-900 mb-6">Create account</h1>
         {error && <p className="text-sm text-urgency-high mb-4">{error}</p>}

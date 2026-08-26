@@ -378,6 +378,20 @@ export default function AdminDashboard() {
         </div>)}
 
       
+      <Card title="Onboarding a doctor? 3 steps">
+        <ol className="grid sm:grid-cols-3 gap-3 text-sm">
+          {[
+            ["Register", "The doctor signs up via the Register page like any patient."],
+            ["Make doctor", "Find their account in User accounts below and click Make doctor."],
+            ["Set profile", "Click Set up profile in the Doctor roster — specialty, hours, slot length."],
+          ].map(([step, detail], i) => (<li key={i} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <p className="font-semibold text-slate-800 mb-0.5">{i + 1}. {step}</p>
+              <p className="text-xs text-slate-500 leading-snug">{detail}</p>
+            </li>))}
+        </ol>
+      </Card>
+
+      
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <Stat label="Patients" value={stats?.patients ?? 0} accent="border-primary"/>
         <Stat label="Doctors" value={doctors.length} accent="border-blue-400"/>

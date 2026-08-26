@@ -32,22 +32,28 @@ export function DashboardShell({ title, subtitle, children, headerRight, }: {
     }, []);
     return (<div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-            {subtitle && <p className="text-sm text-slate-500">{subtitle}</p>}
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-sm shrink-0">C</span>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-semibold text-slate-900 truncate">{title}</h1>
+              {subtitle && <p className="text-xs sm:text-sm text-slate-500 truncate">{subtitle}</p>}
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 shrink-0">
             {headerRight}
-            <span className="text-sm text-slate-500">{user?.email}</span>
-            <button onClick={logout} className="text-sm text-slate-500 hover:text-slate-800">
+            <span className="hidden sm:inline-block rounded-full bg-primary-light text-primary-dark px-2.5 py-0.5 text-xs font-semibold capitalize">
+              {user?.role}
+            </span>
+            <span className="hidden md:inline text-sm text-slate-500 truncate max-w-[180px]">{user?.email}</span>
+            <button onClick={logout} className="text-sm font-medium text-slate-600 hover:text-white hover:bg-slate-700 border border-slate-300 rounded-lg px-3 py-1.5 transition-colors">
               Sign out
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6">
         {banner && (<div className={`rounded-lg px-4 py-3 text-sm ${banner.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-urgency-high"}`}>
             {banner.text}
           </div>)}

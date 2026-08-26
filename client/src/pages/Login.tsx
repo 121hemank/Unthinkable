@@ -18,7 +18,14 @@ export default function Login() {
             setError(err?.response?.data?.error || (err?.response ? "Login failed" : "Cannot reach server — is it running?"));
         }
     }
-    return (<div className="min-h-screen flex items-center justify-center">
+    return (<div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <div className="flex items-center gap-3 mb-6">
+        <span className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg">C</span>
+        <div>
+          <p className="text-lg font-semibold text-slate-900">Clinic Appointment Manager</p>
+          <p className="text-sm text-slate-500">Book, consult and follow up — in one place</p>
+        </div>
+      </div>
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white p-8 rounded-xl shadow-sm border border-slate-200">
         <h1 className="text-xl font-semibold text-slate-900 mb-6">Sign in</h1>
         {error && <p className="text-sm text-urgency-high mb-4">{error}</p>}
@@ -30,8 +37,11 @@ export default function Login() {
           Sign in
         </button>
         <p className="text-sm text-slate-500 mt-4">
-          No account? <Link to="/register" className="text-primary font-medium">Register</Link>
+          New patient? <Link to="/register" className="text-primary font-medium">Create an account</Link>
         </p>
       </form>
+      <button onClick={() => { setEmail("admin@clinic.com"); setPassword("Admin@123"); }} className="mt-4 text-xs text-slate-500 hover:text-slate-700 underline underline-offset-2">
+        Reviewer? Click to fill the demo admin login
+      </button>
     </div>);
 }
