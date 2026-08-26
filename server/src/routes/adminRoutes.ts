@@ -1,12 +1,13 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { requireRole } from "../middleware/rbac";
-import { createDoctorProfile, markDoctorLeave, listDoctors, getPlatformStats, listAllAppointments, adminCancelAppointment, setDoctorActive, listUpcomingLeaves, deleteLeave, listUsers, setUserActive, setUserRole, } from "../controllers/adminController";
+import { createDoctorProfile, markDoctorLeave, listDoctors, getPlatformStats, listAllAppointments, adminCancelAppointment, setDoctorActive, listUpcomingLeaves, deleteLeave, listUsers, setUserActive, setUserRole, updateDoctorProfile, } from "../controllers/adminController";
 const router = Router();
 router.use(requireAuth, requireRole("admin"));
 router.get("/doctors", listDoctors);
 router.post("/doctors", createDoctorProfile);
 router.patch("/doctors/:userId/active", setDoctorActive);
+router.put("/doctors/:userId", updateDoctorProfile);
 router.post("/leave", markDoctorLeave);
 router.get("/leaves", listUpcomingLeaves);
 router.delete("/leaves/:id", deleteLeave);

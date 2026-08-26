@@ -38,15 +38,31 @@ export async function createDoctorProfile(req: Request, res: Response, next: Nex
         const data = doctorProfileSchema.parse(req.body);
         const existing = await DoctorProfile.findOne({ userId: data.userId }).select("_id");
         if (existing) {
-            return res.status(409).json({ error: "This doctor already has a profile. They can edit their hours from their own dashboard." });
+            return res.status(409).json({ error: "This doctor already has a profile. Use Edit to change it." });
         }
         const profile = await DoctorProfile.create(data);
         return res.status(201).json({ profile });
     }
     catch (err: any) {
         if (err?.code === 11000) {
-            return res.status(409).json({ error: "This doctor already has a profile. They can edit their hours from their own dashboard." });
+            return res.status(409).json({ error: "This doctor already has a profile. Use Edit to change it." });
         }
+        next(err);
+    }
+}
+export async function updateDoctorProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+        const data = doctorProfileSchema.parse({ ...req.body, userId: req.params.userId });
+        const target = await User.findById(req.params.userId).select("role");
+        if (!target)
+            return res.status(404).json({ error: "User not found" });
+        if (target.role !== "doctor") {
+            return res.status(409).json({ error: "That account is not a doctor" });
+        }
+        const profile = await DoctorProfile.findOneAndUpdate({ userId: req.params.userId }, { $set: data }, { new: true, upsert: true });
+        return res.json({ profile });
+    }
+    catch (err) {
         next(err);
     }
 }

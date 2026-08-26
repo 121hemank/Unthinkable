@@ -125,6 +125,7 @@ export default function AdminDashboard() {
     const [leaveReason, setLeaveReason] = useState("");
     const [busy, setBusy] = useState(false);
     const leaveCardRef = useRef<HTMLDivElement>(null);
+    const profileCardRef = useRef<HTMLDivElement>(null);
     const load = useCallback(async () => {
         try {
             const [docRes, statsRes, apptRes, leaveRes, usersRes] = await Promise.allSettled([
@@ -185,17 +186,25 @@ export default function AdminDashboard() {
                 setMessage({ text: "Enable at least one consulting day.", ok: false });
                 return;
             }
-            await api.post("/admin/doctors", {
-                userId: selectedUserId,
+            const selected = doctors.find((d) => d._id === selectedUserId);
+            const hasProfile = Boolean(selected?.profile);
+            const payload = {
                 specialization,
                 slotDurationMinutes: slotDuration,
                 workingHours,
-            });
-            setMessage({ text: "Doctor profile created — they're now bookable by patients.", ok: true });
+            };
+            if (hasProfile) {
+                await api.put(`/admin/doctors/${selectedUserId}`, payload);
+                setMessage({ text: `Dr. ${selected?.name}'s profile updated.`, ok: true });
+            }
+            else {
+                await api.post("/admin/doctors", { userId: selectedUserId, ...payload });
+                setMessage({ text: "Doctor profile created — they're now bookable by patients.", ok: true });
+            }
             load();
         }
         catch (err: any) {
-            setMessage({ text: err?.response?.data?.error || "Could not create profile", ok: false });
+            setMessage({ text: err?.response?.data?.error || "Could not save profile", ok: false });
         }
         finally {
             setBusy(false);
@@ -232,6 +241,36 @@ export default function AdminDashboard() {
     }
     const unprofiled = doctors.filter((d) => !d.profile);
     const activeProfiles = doctors.length - unprofiled.length;
+    const selectedDoctor = doctors.find((d) => d._id === selectedUserId);
+    useEffect(() => {
+        const p = selectedDoctor?.profile;
+        setSpecialization(p?.specialization || "");
+        setSlotDuration(p?.slotDurationMinutes || 30);
+        setHoursRows(() => {
+            const rows: Record<WeekdayKey, { start: string; end: string; on: boolean }[]> = {
+                mon: [{ start: "09:00", end: "17:00", on: !p }],
+                tue: [{ start: "09:00", end: "17:00", on: !p }],
+                wed: [{ start: "09:00", end: "17:00", on: !p }],
+                thu: [{ start: "09:00", end: "17:00", on: !p }],
+                fri: [{ start: "09:00", end: "17:00", on: !p }],
+                sat: [{ start: "10:00", end: "14:00", on: false }],
+                sun: [{ start: "10:00", end: "14:00", on: false }],
+            };
+            if (p?.workingHours) {
+                for (const day of WEEKDAYS) {
+                    const windows = (p.workingHours as Record<string, { start: string; end: string }[]>)[day];
+                    if (windows?.length)
+                        rows[day] = windows.map((w) => ({ ...w, on: true }));
+                }
+            }
+            return rows;
+        });
+    }, [selectedUserId, doctors]);
+    function openEditorFor(id: string) {
+        setSelectedUserId(id);
+        setMessage(null);
+        profileCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     async function toggleActive(d: DoctorListItem) {
         if (!d.profile)
             return;
@@ -376,12 +415,12 @@ export default function AdminDashboard() {
                       <button onClick={() => startLeaveFor(d)} className="text-sm text-amber-600 font-medium hover:underline whitespace-nowrap">
                         Mark leave
                       </button>
-                      <button onClick={() => setExpandedId(expandedId === d._id ? null : d._id)} className="text-sm text-primary font-medium hover:underline whitespace-nowrap">
-                        {expandedId === d._id ? "Hide hours ↑" : "Weekly hours"}
+                      <button onClick={() => openEditorFor(d._id)} className="text-sm text-primary font-medium hover:underline whitespace-nowrap">
+                        Edit profile
                       </button>
-                    </>) : (<span className="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap">
-                      Needs setup
-                    </span>)}
+                    </>) : (<button onClick={() => openEditorFor(d._id)} className="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap hover:bg-amber-200">
+                        Set up profile →
+                      </button>)}
                 </li>
                 {expandedId === d._id && d.profile && (<li className="px-2 pb-4">
                     <WeeklySchedule doctor={d}/>
@@ -391,24 +430,27 @@ export default function AdminDashboard() {
       </Card>
 
       
-      <Card title="Create doctor profile">
-        {unprofiled.length === 0 ? (<p className="text-sm text-slate-500">
-            Every doctor account has a profile here. To onboard a new clinician:
-          find their account under <strong>User accounts</strong>, click
-          <strong> Make doctor</strong>, and their row will appear above for
-          profile setup.
+      <div ref={profileCardRef}>
+      <Card title="Doctor profile setup">
+        {doctors.length === 0 ? (<p className="text-sm text-slate-500">
+            No doctor accounts yet. To onboard a clinician: find their account
+            under <strong>User accounts</strong>, click <strong>Make doctor</strong>,
+            and they'll appear in the roster above.
           </p>) : (<div className="space-y-4 max-w-xl">
-            <div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-800">
-              {unprofiled.length} doctor{unprofiled.length > 1 ? "s" : ""} waiting for a profile before
-              patients can book them.
-            </div>
+            {unprofiled.length > 0 && (<div className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-800">
+                {unprofiled.length} doctor{unprofiled.length > 1 ? "s" : ""} waiting for a profile before
+                patients can book them.
+              </div>)}
             <div>
               <label className="block text-sm text-slate-600 mb-1">Doctor account</label>
               <select className={inputClass} value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
-                {unprofiled.map((d) => (<option key={d._id} value={d._id}>
-                    Dr. {d.name} ({d.email})
+                {doctors.map((d) => (<option key={d._id} value={d._id}>
+                    Dr. {d.name} ({d.email}){d.profile ? "" : " — needs setup"}
                   </option>))}
               </select>
+              <p className="text-xs text-slate-400 mt-1">
+                {selectedDoctor?.profile ? "This doctor has a profile — editing will update it everywhere instantly." : "No profile yet — fill this in to make them bookable."}
+              </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
@@ -439,10 +481,11 @@ export default function AdminDashboard() {
               </div>
             </div>
             <button onClick={createProfile} disabled={busy || !selectedUserId || specialization.trim().length < 2} className={btnClass}>
-              Create profile
+              {selectedDoctor?.profile ? "Save changes" : "Create profile"}
             </button>
           </div>)}
       </Card>
+      </div>
 
       
       <div ref={leaveCardRef}>
