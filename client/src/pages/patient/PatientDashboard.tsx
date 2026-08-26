@@ -216,26 +216,26 @@ function UpcomingRow({ appt, variant, onReschedule, onResume, onRelease, onCance
     onCancel: () => void;
 }) {
     return (<div className={`border border-slate-200 rounded-xl bg-white overflow-hidden ${variant === "held" ? "border-l-4 border-l-amber-400" : ""}`}>
-      <div className="px-5 py-4 flex items-center gap-4">
+      <div className="px-4 sm:px-5 py-4 flex flex-wrap items-center gap-x-4 gap-y-3">
         <Avatar name={nameOf(appt.doctorId)}/>
         <div className="min-w-0 flex-1">
           <p className="font-medium text-slate-900 truncate">Dr. {nameOf(appt.doctorId)}</p>
           <p className="text-sm text-slate-500">{whenLabel(appt.slotStart)}</p>
         </div>
         <StatusBadge status={appt.status}/>
-        <div className="flex items-center gap-3 whitespace-nowrap">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {variant === "held" ? (<>
-              <button onClick={onResume} className="text-sm font-semibold text-primary hover:underline">
+              <button onClick={onResume} className="text-xs font-semibold text-white bg-primary hover:bg-primary-dark rounded-lg px-3 py-1.5 transition-colors">
                 Complete booking →
               </button>
-              <button onClick={onRelease} className="text-sm text-slate-500 hover:text-slate-800 hover:underline">
+              <button onClick={onRelease} className="text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg px-3 py-1.5 ring-1 ring-slate-300 transition-colors">
                 Release slot
               </button>
             </>) : (<>
-              <button onClick={onReschedule} className="text-sm text-primary font-medium hover:underline">
+              <button onClick={onReschedule} className="text-xs font-semibold text-teal-700 hover:bg-teal-50 rounded-lg px-3 py-1.5 ring-1 ring-teal-200 transition-colors">
                 Reschedule
               </button>
-              <button onClick={onCancel} className="text-sm text-urgency-medium hover:underline">
+              <button onClick={onCancel} className="text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg px-3 py-1.5 ring-1 ring-red-200 transition-colors">
                 Cancel
               </button>
             </>)}

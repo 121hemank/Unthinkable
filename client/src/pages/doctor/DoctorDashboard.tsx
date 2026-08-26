@@ -221,16 +221,19 @@ export default function DoctorDashboard() {
         <Stat label="Awaiting notes" value={groups.attention.length} accent="border-amber-400"/>
         <Stat label="Upcoming" value={groups.upcoming.length} accent="border-primary"/>
         <Stat label="Patients seen" value={groups.completed.length} accent="border-emerald-500"/>
-        <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 col-span-2 sm:col-span-1">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Next patient</p>
+        <div className={`bg-white ring-1 ring-slate-200/70 shadow-sm shadow-slate-200/50 border-l-4 ${next ? "border-l-violet-400 border-violet-200" : "border-violet-200"} rounded-2xl px-5 py-4`}>
+          <p className="text-xs font-medium text-slate-500">Next patient</p>
           {next ? (<>
-              <p className="font-medium text-slate-900 truncate mt-1">{nameOf(next.patientId)}</p>
+              <p className="text-lg font-extrabold tracking-tight text-slate-900 truncate mt-1.5">{nameOf(next.patientId)}</p>
               <p className="text-xs text-slate-500">{whenLabel(next.slotStart)}</p>
-            </>) : (<p className="text-sm text-slate-400 mt-1">None scheduled</p>)}
+            </>) : (<p className="text-sm text-slate-400 mt-1.5">None scheduled</p>)}
         </div>
       </div>
 
       
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
+          
       <Card title="Needs your notes" actions={groups.attention.length > 0 ? (<span className="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-xs font-medium">
               {groups.attention.length}
             </span>) : undefined}>
@@ -267,8 +270,11 @@ export default function DoctorDashboard() {
               </li>))}
           </ul>)}
       </Card>
-
-      <DoctorProfileCard />
-      <CalendarLinkCard />
+        </div>
+        <div className="space-y-6">
+          <CalendarLinkCard />
+          <DoctorProfileCard />
+        </div>
+      </div>
     </DashboardShell>);
 }

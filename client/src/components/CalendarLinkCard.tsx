@@ -25,17 +25,20 @@ export function CalendarLinkCard() {
             setBusy(false);
         }
     }
+    if (linked) {
+        return (<div className="flex items-center gap-2.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 px-4 py-3 text-sm text-emerald-800">
+        <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-bold shrink-0">✓</span>
+        <span><strong>Calendar synced</strong> — confirmed visits appear on your Google Calendar automatically.</span>
+      </div>);
+    }
     return (<Card title="Google Calendar sync">
-      {linked === null ? (<p className="text-sm text-slate-500">Checking…</p>) : linked ? (<p className="text-sm text-emerald-700">
-          Your calendar is linked — confirmed appointments appear on it automatically.
-        </p>) : (<>
-          <p className="text-sm text-slate-500 mb-3">
-            Link your Google Calendar so confirmed appointments are added automatically.
-          </p>
-          <button onClick={startLinking} disabled={busy} className={btnClass}>
-            {busy ? "Redirecting…" : "Link Google Calendar"}
-          </button>
-          {error && <p className="text-sm text-urgency-high mt-3">{error}</p>}
-        </>)}
+      <p className="text-sm text-slate-500 mb-4">
+        Link your Google account once — every confirmed or rescheduled visit is
+        added to your calendar automatically, with reminders before it starts.
+      </p>
+      <button onClick={startLinking} disabled={busy} className={`${btnClass} w-full sm:w-auto`}>
+        {busy ? "Redirecting…" : "Sync Google Calendar"}
+      </button>
+      {error && <p className="text-sm text-urgency-high mt-3">{error}</p>}
     </Card>);
 }

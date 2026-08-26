@@ -408,7 +408,7 @@ export default function AdminDashboard() {
             create their profile here.
           </p>) : (<ul className="divide-y divide-slate-100 -mx-2">
             {doctors.map((d) => (<Fragment key={d._id}>
-                <li className="py-3 px-2 flex items-center gap-4">
+                <li className="py-3 px-2 flex flex-wrap items-center gap-x-4 gap-y-2">
                   <Avatar name={d.name} tone={d.profile ? "primary" : "slate"}/>
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-slate-900 truncate">Dr. {d.name}</p>
