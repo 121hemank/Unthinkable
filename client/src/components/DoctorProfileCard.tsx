@@ -21,14 +21,12 @@ const COMMON_SPECIALIZATIONS = [
     "Urology",
 ];
 const WEEKDAYS: WeekdayKey[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const DAY_SHORT: Record<WeekdayKey, string> = {
+    mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun",
+};
 const DAY_LABELS: Record<WeekdayKey, string> = {
-    mon: "Monday",
-    tue: "Tuesday",
-    wed: "Wednesday",
-    thu: "Thursday",
-    fri: "Friday",
-    sat: "Saturday",
-    sun: "Sunday",
+    mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday",
+    fri: "Friday", sat: "Saturday", sun: "Sunday",
 };
 type Rows = Record<WeekdayKey, WorkingHoursSlot[]>;
 function toMinutes(hhmm: string): number {
@@ -162,7 +160,7 @@ export function DoctorProfileCard() {
                 workingHours,
             });
             setProfile(data.profile);
-            setSavedMsg(`Saved — patients can find you as “${data.profile.specialization}” and book ${data.profile.slotDurationMinutes}-min slots on ${Object.keys(workingHours).length} day(s).`);
+            setSavedMsg(`Saved — patients can book ${data.profile.slotDurationMinutes}-min slots on ${Object.keys(workingHours).length} day(s).`);
         }
         catch (err: any) {
             setError(err?.response?.data?.error || "Could not save your profile");
@@ -171,30 +169,31 @@ export function DoctorProfileCard() {
             setBusy(false);
         }
     }
+    const timeInput = `${inputClass} !w-[86px] !px-2 !py-1.5 !text-xs`;
     return (<Card title="My profile & availability">
       {!loaded ? (<p className="text-sm text-slate-500">Loading…</p>) : (<div className="space-y-5">
-          {!profile && (<p className="text-sm bg-amber-50 text-urgency-medium rounded-lg px-3 py-2">
+          {!profile && (<p className="text-xs bg-amber-50 text-urgency-medium rounded-lg px-3 py-2 ring-1 ring-amber-100">
               Finish this once — until you save it, patients can't find or book you.
             </p>)}
 
           
           <div>
-            <label className="block text-sm text-slate-600 mb-1">Your name</label>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Display name</label>
+            <div className="flex gap-2">
               <input className={inputClass} value={name} onChange={(e) => {
                 setName(e.target.value);
                 setNameMsg(null);
-            }} placeholder="Dr. name as patients should see it"/>
-              <button onClick={saveName} disabled={nameBusy || name.trim().length < 2 || name.trim() === user?.name} className={btnClass}>
-                {nameBusy ? "Saving…" : "Update name"}
+            }} placeholder="Dr. name as patients see it"/>
+              <button onClick={saveName} disabled={nameBusy || name.trim().length < 2 || name.trim() === user?.name} className={`${btnClass} !px-3 !py-2 shrink-0`}>
+                {nameBusy ? "…" : "Update"}
               </button>
             </div>
-            {nameMsg && <p className={`text-sm mt-2 ${nameMsg === "Name updated." ? "text-emerald-700" : "text-urgency-high"}`}>{nameMsg}</p>}
+            {nameMsg && <p className={`text-xs mt-1.5 ${nameMsg === "Name updated." ? "text-emerald-700" : "text-urgency-high"}`}>{nameMsg}</p>}
           </div>
 
           
           <div>
-            <label className="block text-sm text-slate-600 mb-1">Specialization</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Specialization</label>
             <input list="common-specializations" className={inputClass} placeholder="e.g. Cardiology" value={specialization} onChange={(e) => {
                 setSpecialization(e.target.value);
                 setSavedMsg(null);
@@ -206,56 +205,48 @@ export function DoctorProfileCard() {
 
           
           <div>
-            <label className="block text-sm text-slate-600 mb-1">Appointment slot length</label>
-            <select className={inputClass} value={duration} onChange={(e) => {
-                setDuration(Number(e.target.value));
-                setSavedMsg(null);
-            }}>
-              {[...new Set([...DURATION_OPTIONS, duration])].sort((a, b) => a - b).map((m) => (<option key={m} value={m}>
-                  {m} minutes
-                </option>))}
-            </select>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Slot length</label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {DURATION_OPTIONS.map((m) => (<button key={m} onClick={() => { setDuration(m); setSavedMsg(null); }} className={`rounded-lg py-1.5 text-xs font-semibold ring-1 transition-colors ${duration === m ? "bg-primary text-white ring-primary shadow-sm shadow-teal-600/25" : "bg-white text-slate-600 ring-slate-300 hover:bg-slate-50"}`}>
+                  {m}m
+                </button>))}
+            </div>
           </div>
 
           
           <div>
-            <label className="block text-sm text-slate-600 mb-2">
-              Consulting hours (Indian Standard Time) — add a second window to block out lunch
-            </label>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">Weekly hours</label>
+              <span className="text-[11px] text-slate-400">clinic local time</span>
+            </div>
+            <div className="rounded-xl ring-1 ring-slate-200 overflow-hidden divide-y divide-slate-100 bg-white">
               {WEEKDAYS.map((day) => {
                 const has = rows[day].length > 0;
-                return (<div key={day} className="flex items-start gap-3">
-                    <label className="flex items-center gap-2 w-32 pt-2 cursor-pointer">
-                      <input type="checkbox" checked={has} onChange={(e) => toggleDay(day, e.target.checked)}/>
-                      <span className="text-sm text-slate-700">{DAY_LABELS[day]}</span>
+                return (<div key={day} className={`flex items-center gap-2 px-2.5 py-2 flex-wrap ${has ? "" : "bg-slate-50/70"}`}>
+                    <label className="flex items-center gap-1.5 w-[52px] cursor-pointer shrink-0">
+                      <input type="checkbox" checked={has} onChange={(e) => toggleDay(day, e.target.checked)} className="accent-teal-600"/>
+                      <span className={`text-xs font-semibold ${has ? "text-slate-800" : "text-slate-400"}`}>{DAY_SHORT[day]}</span>
                     </label>
-                    <div className="space-y-2">
-                      {has ? (<>
-                          {rows[day].map((w, i) => (<div key={i} className="flex items-center gap-2">
-                              <input type="time" className={`${inputClass} !w-32`} value={w.start} onChange={(e) => updateWindow(day, i, { start: e.target.value })}/>
-                              <span className="text-slate-400 text-sm">to</span>
-                              <input type="time" className={`${inputClass} !w-32`} value={w.end} onChange={(e) => updateWindow(day, i, { end: e.target.value })}/>
-                              {rows[day].length > 1 && (<button onClick={() => removeWindow(day, i)} title="Remove this window" className="text-slate-400 hover:text-urgency-high px-1">
-                                  ✕
-                                </button>)}
-                            </div>))}
-                          <button onClick={() => addWindow(day)} className="text-sm text-primary font-medium">
-                            + Add window (e.g. evening after lunch)
-                          </button>
-                        </>) : (<p className="text-sm text-slate-400 pt-1.5">Not consulting</p>)}
-                    </div>
+                    {has ? (<div className="flex items-center gap-1.5 flex-wrap">
+                        {rows[day].map((w, i) => (<span key={i} className="flex items-center gap-1">
+                            <input type="time" className={timeInput} value={w.start} onChange={(e) => updateWindow(day, i, { start: e.target.value })}/>
+                            <span className="text-slate-400 text-xs">–</span>
+                            <input type="time" className={timeInput} value={w.end} onChange={(e) => updateWindow(day, i, { end: e.target.value })}/>
+                            {rows[day].length > 1 && (<button onClick={() => removeWindow(day, i)} title="Remove this window" className="w-5 h-5 rounded-md text-slate-400 hover:text-urgency-high hover:bg-red-50 text-xs leading-none transition-colors">✕</button>)}
+                          </span>))}
+                        <button onClick={() => addWindow(day)} title="Add a second window (e.g. evening clinic)" className="ml-1 w-6 h-6 rounded-md ring-1 ring-dashed ring-slate-300 text-slate-400 hover:text-primary hover:ring-primary text-sm leading-none font-bold transition-colors">+</button>
+                      </div>) : (<span className="text-xs text-slate-400 ml-auto">Not consulting</span>)}
                   </div>);
             })}
             </div>
           </div>
 
-          <button onClick={save} disabled={busy || specialization.trim().length < 2} className={btnClass}>
+          <button onClick={save} disabled={busy || specialization.trim().length < 2} className={`${btnClass} w-full`}>
             {busy ? "Saving…" : "Save profile"}
           </button>
 
-          {savedMsg && <p className="text-sm text-emerald-700">{savedMsg}</p>}
-          {error && <p className="text-sm text-urgency-high">{error}</p>}
+          {savedMsg && <p className="text-xs text-emerald-700">{savedMsg}</p>}
+          {error && <p className="text-xs text-urgency-high">{error}</p>}
         </div>)}
     </Card>);
 }
