@@ -102,9 +102,10 @@ block or throttle outbound **465**.
    - Authorized redirect URI (prod): `https://<your-api-host>/api/auth/google/callback`
    - Authorized JavaScript origin (prod): `https://<your-frontend-host>`
 5. Put client ID/secret in env; doctors click **Connect Google Calendar** in
-   their dashboard. The consent grants `calendar.events` + `gmail.send`;
-   confirmed/rescheduled appointments sync automatically and the clinic's
-   linked account becomes the sender for notification emails if SMTP fails.
+   their dashboard. The consent grants `calendar.events` for appointment
+   sync; confirmed/rescheduled appointments appear automatically and the
+   clinic's linked account acts as sender for notification emails if SMTP
+   fails (the owner's token may also carry `gmail.send` from earlier consent).
 
 ## Deployment
 
