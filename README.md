@@ -116,8 +116,9 @@ block or throttle outbound **465**.
   env `VITE_API_URL=https://<render-app>/api`. `client/vercel.json` rewrites
   all routes to `index.html` so SPA deep links survive refresh.
 - Set `CLIENT_URL` on Render to the Vercel URL after the first deploy.
-- Free Render instances sleep when idle (~50 s cold start); cron jobs run
-  only while awake.
+- Free Render instances sleep when idle (~50 s cold start); the client
+  auto-retries transient failures and shows a friendly "waking up" message.
+  Keep the API warm during demos with a free pinger on `/api/health`.
 
 ## API reference
 
@@ -160,13 +161,15 @@ Errors are always `{ "error": string }`; duplicate-key slot races → `409`.
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/stats` | Platform counters |
-| GET/POST | `/doctors` | Roster w/ profiles; create profile (hours parser accepts `mon: 09:00-13:00`) |
+| GET/POST | `/doctors` | Roster w/ profiles; create profile (per-day hours editor) |
+| PUT | `/doctors/:userId` | Update an existing doctor's profile/hours |
 | PATCH | `/doctors/:userId/active` | Deactivate → hidden from search/booking |
 | POST | `/leave` | Mark leave; force-cancels + emails affected patients |
 | GET/DELETE | `/leaves` | Upcoming leaves board |
 | GET | `/appointments` | All visits, optional `?status=` |
 | POST | `/appointments/:id/cancel` | Force-cancel + notify both parties |
 | GET/PATCH | `/users`, `/users/:userId/active` | User management (admins can't be disabled) |
+| PATCH | `/users/:userId/role` | Promote patient → doctor / demote (admins exempt) |
 
 ### Notifications (`/api/notifications`)
 | Method | Route | Auth | Purpose |
