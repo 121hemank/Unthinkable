@@ -7,13 +7,12 @@ export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState<"patient" | "doctor">("patient");
     const [error, setError] = useState<string | null>(null);
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setError(null);
         try {
-            await register(name, email, password, role);
+            await register(name, email, password, "patient");
             navigate("/");
         }
         catch (err: any) {
@@ -30,11 +29,10 @@ export default function Register() {
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full mb-4 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required/>
         <label className="block text-sm text-slate-600 mb-1">Password</label>
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full mb-4 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required/>
-        <label className="block text-sm text-slate-600 mb-1">I am a</label>
-        <select value={role} onChange={(e) => setRole(e.target.value as "patient" | "doctor")} className="w-full mb-6 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-          <option value="patient">Patient</option>
-          <option value="doctor">Doctor</option>
-        </select>
+        <p className="text-xs text-slate-500 mb-6 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+          You're signing up as a <strong>patient</strong>. Clinician accounts are
+          created by the clinic admin — contact the front desk if you're a doctor.
+        </p>
         <button type="submit" className="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-lg font-medium">
           Create account
         </button>
